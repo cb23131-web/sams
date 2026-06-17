@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'registeredsubject.dart';
 import 'attendance_student.dart';
-import 'curriculum_subject_list.dart';
+import 'co_curriculum_list.dart';
 import 'credit_claiming.dart';
 
 // HomePage displays a grid of features and a bottom navigation bar.
@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const CurriculumSubjectListPage(),
+                          builder: (_) => const CoCurriculumListPage(),
                         ),
                       );
                     },

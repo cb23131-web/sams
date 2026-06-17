@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'manage_subjects.dart';
+import 'attendance_home.dart';
 
-import 'manage_claims.dart';
+class LecturerHomePage extends StatefulWidget {
+  const LecturerHomePage({super.key});
 
-class AdabHomePage extends StatelessWidget {
-  const AdabHomePage({super.key});
+  @override
+  State<LecturerHomePage> createState() => _LecturerHomePageState();
+}
+
+class _LecturerHomePageState extends State<LecturerHomePage> {
+  int _selectedBottomIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ADAB HOME'),
+        title: const Text('SAMS'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -30,10 +37,10 @@ class AdabHomePage extends StatelessWidget {
             const Center(
               child: Text(
                 'HOMEPAGE',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             GridView.count(
               crossAxisCount: 2,
               crossAxisSpacing: 16,
@@ -43,33 +50,64 @@ class AdabHomePage extends StatelessWidget {
               childAspectRatio: 1,
               children: [
                 _buildFeatureCard(
-                  context: context,
-                  label: 'Manage Activities',
+                  label: 'Attendance',
+                  icon: Icons.people,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const LecturerAttendanceHomePage(),
+                      ),
+                    );
+                  },
+                ),
+                _buildFeatureCard(
+                  label: 'Subject Lists',
+                  icon: Icons.menu_book,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ManageSubjectsPage(),
+                      ),
+                    );
+                  },
+                ),
+                _buildFeatureCard(
+                  label: 'Curriculum Registration',
+                  icon: Icons.assignment_turned_in,
+                  onTap: () => _showComingSoon(context),
+                ),
+                _buildFeatureCard(
+                  label: 'Fees',
+                  icon: Icons.receipt_long,
+                  onTap: () => _showComingSoon(context),
+                ),
+                _buildFeatureCard(
+                  label: 'Activities',
                   icon: Icons.local_activity,
                   onTap: () => _showComingSoon(context),
                 ),
                 _buildFeatureCard(
-                  context: context,
-                  label: 'Manage Claims',
-                  icon: Icons.receipt_long,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ManageClaimsPage(),
-                      ),
-                    );
-                  },
+                  label: 'Credits',
+                  icon: Icons.credit_score,
+                  onTap: () => _showComingSoon(context),
                 ),
               ],
             ),
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedBottomIndex,
+        onTap: (index) => setState(() => _selectedBottomIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
     );
   }
 
   Widget _buildFeatureCard({
-    required BuildContext context,
     required String label,
     required IconData icon,
     required VoidCallback onTap,

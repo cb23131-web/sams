@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
-import 'registeredsubject.dart';
-import 'attendance_student.dart';
-import 'curriculum_subject_list.dart';
-import 'credit_claiming.dart';
+import 'manage_subjects_offerings.dart';
+import 'subject_list.dart';
 
-// HomePage displays a grid of features and a bottom navigation bar.
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class FakultihomePage extends StatefulWidget {
+  const FakultihomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<FakultihomePage> createState() => _FakultihomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  // Tracks the currently selected bottom navigation index.
+class _FakultihomePageState extends State<FakultihomePage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    // Handles taps on the bottom navigation bar.
     setState(() {
       _selectedIndex = index;
     });
   }
 
   Widget _buildFeature(IconData icon, String label) {
-    // Helper to build each feature icon + label cell.
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -41,14 +35,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Builds the homepage matching the provided mockup: app bar, grid,
-    // and bottom navigation.
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFB38AA8), // muted purple bar
+        backgroundColor: const Color(0xFFB38AA8),
         elevation: 0,
         title: const Text('SAMS', style: TextStyle(fontSize: 14)),
-        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -77,21 +68,12 @@ class _HomePageState extends State<HomePage> {
                 crossAxisSpacing: 30,
                 childAspectRatio: 1,
                 children: [
+                  _buildFeature(Icons.manage_accounts, 'Attendance'),
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const StudentAttendancePage(),
-                        ),
-                      );
-                    },
-                    child: _buildFeature(Icons.person, 'Attendance'),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const RegisteredSubjectPage(),
+                          builder: (_) => const SubjectListPage(),
                         ),
                       );
                     },
@@ -101,27 +83,15 @@ class _HomePageState extends State<HomePage> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const CurriculumSubjectListPage(),
+                          builder: (_) => const ManageSubjectsOfferingsPage(),
                         ),
                       );
                     },
-                    child: _buildFeature(
-                      Icons.assignment,
-                      'Curriculum Registration',
-                    ),
+                    child: _buildFeature(Icons.edit, 'Manage co-curriculum'),
                   ),
                   _buildFeature(Icons.receipt, 'Fees'),
                   _buildFeature(Icons.event, 'Activities'),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const CreditClaimingPage(),
-                        ),
-                      );
-                    },
-                    child: _buildFeature(Icons.article, 'Credits'),
-                  ),
+                  _buildFeature(Icons.article, 'Credits'),
                 ],
               ),
             ),

@@ -234,43 +234,6 @@ class TuitionFee {
   };
 }
 
-class PaymentTransaction {
-  int? transactionId;
-  int feeId;
-  double amount;
-  String paidAt;
-  String method;
-  String receiptNo;
-
-  PaymentTransaction({
-    this.transactionId,
-    required this.feeId,
-    required this.amount,
-    required this.paidAt,
-    required this.method,
-    required this.receiptNo,
-  });
-
-  factory PaymentTransaction.fromMap(Map<String, dynamic> m) =>
-      PaymentTransaction(
-        transactionId: m['transaction_id'] as int?,
-        feeId: m['fee_id'] as int,
-        amount: (m['amount'] as num).toDouble(),
-        paidAt: m['paid_at'] as String,
-        method: m['method'] as String,
-        receiptNo: m['receipt_no'] as String,
-      );
-
-  Map<String, dynamic> toMap() => {
-    'transaction_id': transactionId,
-    'fee_id': feeId,
-    'amount': amount,
-    'paid_at': paidAt,
-    'method': method,
-    'receipt_no': receiptNo,
-  };
-}
-
 class ClaimActivity {
   int? id;
   String title;
@@ -348,6 +311,43 @@ class Claim {
     'verified_hours': verifiedHours,
     'credit_equivalent': creditEquivalent,
     'rejection_reason': rejectionReason,
+  };
+}
+
+class PaymentTransaction {
+  int? transactionId;
+  int feeId;
+  double amount;
+  String paidAt;
+  String method;
+  String receiptNo;
+
+  PaymentTransaction({
+    this.transactionId,
+    required this.feeId,
+    required this.amount,
+    required this.paidAt,
+    required this.method,
+    required this.receiptNo,
+  });
+
+  factory PaymentTransaction.fromMap(Map<String, dynamic> m) =>
+      PaymentTransaction(
+        transactionId: m['transaction_id'] as int?,
+        feeId: m['fee_id'] as int,
+        amount: (m['amount'] as num).toDouble(),
+        paidAt: m['paid_at'] as String,
+        method: m['method'] as String,
+        receiptNo: m['receipt_no'] as String,
+      );
+
+  Map<String, dynamic> toMap() => {
+    'transaction_id': transactionId,
+    'fee_id': feeId,
+    'amount': amount,
+    'paid_at': paidAt,
+    'method': method,
+    'receipt_no': receiptNo,
   };
 }
 
@@ -451,57 +451,6 @@ class AppDatabase {
         FOREIGN KEY(session_id) REFERENCES attendance_sessions(session_id)
       )
     ''');
-  }
-
-  Future<void> _createTreasurySchema(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS tuition_fee_status (
-        status_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        status_name TEXT,
-        triggers_block INTEGER
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS tuition_fee (
-        fee_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id TEXT,
-        status_id INTEGER,
-        semester TEXT,
-        amount REAL,
-        amount_paid REAL,
-        due_date TEXT,
-        FOREIGN KEY(status_id) REFERENCES tuition_fee_status(status_id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS payment_transaction (
-        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fee_id INTEGER,
-        amount REAL,
-        paid_at TEXT,
-        method TEXT,
-        receipt_no TEXT,
-        FOREIGN KEY(fee_id) REFERENCES tuition_fee(fee_id)
-      )
-    ''');
-
-    final statusCount = await db.query('tuition_fee_status');
-    if (statusCount.isEmpty) {
-      await db.insert('tuition_fee_status', {
-        'status_name': 'PAID',
-        'triggers_block': 0,
-      });
-      await db.insert('tuition_fee_status', {
-        'status_name': 'PENDING',
-        'triggers_block': 0,
-      });
-      await db.insert('tuition_fee_status', {
-        'status_name': 'BLOCKED',
-        'triggers_block': 1,
-      });
-    }
   }
 
   Future<void> _createSchema(Database db) async {
@@ -641,79 +590,9 @@ class AppDatabase {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getClaimsForReview() async {
-    final database = await db;
-    return database.rawQuery('''
-      SELECT c.claim_id, c.activity_id, c.student_name, c.status, c.submission_date,
-        c.verified_hours, c.credit_equivalent, c.rejection_reason,
-        a.title AS activity_title, a.category, a.hours, a.credit
-      FROM claims c
-      JOIN claim_activities a ON a.id = c.activity_id
-      ORDER BY c.claim_id DESC
-      ''', []);
-  }
-
-  Future<List<Claim>> getClaims({String? studentName}) async {
-    final database = await db;
-    final maps = await database.query(
-      'claims',
-      where: studentName != null ? 'student_name = ?' : null,
-      whereArgs: studentName != null ? [studentName] : null,
-      orderBy: 'claim_id DESC',
-    );
-    return maps.map((m) => Claim.fromMap(m)).toList();
-  }
-
-  Future<Map<String, dynamic>?> getClaimDetailById(int claimId) async {
-    final database = await db;
-    final maps = await database.rawQuery(
-      '''
-      SELECT c.claim_id, c.activity_id, c.student_name, c.status, c.submission_date,
-        c.verified_hours, c.credit_equivalent, c.rejection_reason,
-        a.title AS activity_title, a.category, a.hours, a.credit
-      FROM claims c
-      JOIN claim_activities a ON c.activity_id = a.id
-      WHERE c.claim_id = ?
-      ''',
-      [claimId],
-    );
-    return maps.isEmpty ? null : maps.first;
-  }
-
-  Future<Claim?> getClaimById(int claimId) async {
-    final database = await db;
-    final maps = await database.query(
-      'claims',
-      where: 'claim_id = ?',
-      whereArgs: [claimId],
-    );
-    return maps.isEmpty ? null : Claim.fromMap(maps.first);
-  }
-
   Future<int> insertClaim(Claim claim) async {
     final database = await db;
     return database.insert('claims', claim.toMap());
-  }
-
-  Future<int> updateClaimStatus(
-    int claimId,
-    String status, {
-    int? verifiedHours,
-    int? creditEquivalent,
-    String? rejectionReason,
-  }) async {
-    final database = await db;
-    final values = <String, dynamic>{'status': status};
-    if (verifiedHours != null) values['verified_hours'] = verifiedHours;
-    if (creditEquivalent != null)
-      values['credit_equivalent'] = creditEquivalent;
-    if (rejectionReason != null) values['rejection_reason'] = rejectionReason;
-    return database.update(
-      'claims',
-      values,
-      where: 'claim_id = ?',
-      whereArgs: [claimId],
-    );
   }
 
   Future<int> getApprovedCreditTotalForStudent(String student) async {
@@ -727,6 +606,104 @@ class AppDatabase {
       [student],
     );
     return (result.first['total'] as num?)?.toInt() ?? 0;
+  }
+
+  Future<List<Map<String, dynamic>>> getClaimHistoryForStudent(
+    String student,
+  ) async {
+    final database = await db;
+    return database.rawQuery(
+      '''
+      SELECT c.claim_id, c.activity_id, c.student_name, c.status, c.submission_date,
+        c.verified_hours, c.credit_equivalent, c.rejection_reason,
+        a.title AS activity_title, a.category, a.hours, a.credit
+      FROM claims c
+      JOIN claim_activities a ON a.id = c.activity_id
+      WHERE c.student_name = ?
+      ORDER BY c.claim_id DESC
+      ''',
+      [student],
+    );
+  }
+
+  Future<Map<String, dynamic>?> getClaimById(int claimId) async {
+    final database = await db;
+    final maps = await database.query(
+      'claims',
+      where: 'claim_id = ?',
+      whereArgs: [claimId],
+    );
+    return maps.isEmpty ? null : maps.first;
+  }
+
+  Future<int> updateClaimStatus(
+    int claimId,
+    String status, {
+    int? verifiedHours,
+    int? creditEquivalent,
+    String? rejectionReason,
+  }) async {
+    final database = await db;
+    final values = <String, dynamic>{'status': status};
+    if (verifiedHours != null) values['verified_hours'] = verifiedHours;
+    if (creditEquivalent != null) values['credit_equivalent'] = creditEquivalent;
+    if (rejectionReason != null) values['rejection_reason'] = rejectionReason;
+    return database.update(
+      'claims',
+      values,
+      where: 'claim_id = ?',
+      whereArgs: [claimId],
+    );
+  }
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tuition_fee_status (
+        status_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        status_name TEXT,
+        triggers_block INTEGER
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tuition_fee (
+        fee_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id TEXT,
+        status_id INTEGER,
+        semester TEXT,
+        amount REAL,
+        amount_paid REAL,
+        due_date TEXT,
+        FOREIGN KEY(status_id) REFERENCES tuition_fee_status(status_id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS payment_transaction (
+        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fee_id INTEGER,
+        amount REAL,
+        paid_at TEXT,
+        method TEXT,
+        receipt_no TEXT,
+        FOREIGN KEY(fee_id) REFERENCES tuition_fee(fee_id)
+      )
+    ''');
+
+    // Insert default statuses only if they don't exist
+    final statusCount = await db.query('tuition_fee_status');
+    if (statusCount.isEmpty) {
+      await db.insert('tuition_fee_status', {
+        'status_name': 'PAID',
+        'triggers_block': 0,
+      });
+      await db.insert('tuition_fee_status', {
+        'status_name': 'PENDING',
+        'triggers_block': 0,
+      });
+      await db.insert('tuition_fee_status', {
+        'status_name': 'BLOCKED',
+        'triggers_block': 1,
+      });
+    }
   }
 
   Future<List<Subject>> getSubjects() async {
@@ -817,37 +794,35 @@ class AppDatabase {
 
   Future<int> registerCoCurriculum(String student, int cocurriculumId) async {
     final database = await db;
-    return database.transaction<int>((txn) async {
-      final exists = await txn.query(
-        'cocurriculum_registrations',
-        where: 'cocurriculum_id = ? AND student_name = ?',
-        whereArgs: [cocurriculumId, student],
-      );
-      if (exists.isNotEmpty) return 0;
+    final exists = await database.query(
+      'cocurriculum_registrations',
+      where: 'cocurriculum_id = ? AND student_name = ?',
+      whereArgs: [cocurriculumId, student],
+    );
+    if (exists.isNotEmpty) return 0;
 
-      final res = await txn.insert('cocurriculum_registrations', {
-        'cocurriculum_id': cocurriculumId,
-        'student_name': student,
-      });
+    final res = await database.insert('cocurriculum_registrations', {
+      'cocurriculum_id': cocurriculumId,
+      'student_name': student,
+    });
 
-      final curr = await txn.query(
+    final curr = await database.query(
+      'cocurriculums',
+      where: 'id = ?',
+      whereArgs: [cocurriculumId],
+    );
+    if (curr.isNotEmpty) {
+      final enrolled = (curr.first['enrolled'] as int? ?? 0) + 1;
+      final max = curr.first['max_slots'] as int? ?? 30;
+      final status = enrolled >= max ? 'Full' : 'Open';
+      await database.update(
         'cocurriculums',
+        {'enrolled': enrolled, 'status': status},
         where: 'id = ?',
         whereArgs: [cocurriculumId],
       );
-      if (curr.isNotEmpty) {
-        final enrolled = (curr.first['enrolled'] as int? ?? 0) + 1;
-        final max = curr.first['max_slots'] as int? ?? 30;
-        final status = enrolled >= max ? 'Full' : 'Open';
-        await txn.update(
-          'cocurriculums',
-          {'enrolled': enrolled, 'status': status},
-          where: 'id = ?',
-          whereArgs: [cocurriculumId],
-        );
-      }
-      return res;
-    });
+    }
+    return res;
   }
 
   Future<int> unregisterCoCurriculum(String student, int cocurriculumId) async {
