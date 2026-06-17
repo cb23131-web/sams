@@ -503,7 +503,7 @@ class _ManageRegistrationPeriodPageState
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Edit Registration Period'),
+              title: const Text('Edit Registration Perioddsadsada'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
