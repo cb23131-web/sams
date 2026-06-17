@@ -24,6 +24,8 @@ class _SubjectRegistrationDetailsPageState
         _currentStudent,
         widget.subject.id!,
       );
+      if (!mounted) return;
+
       if (res > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -42,11 +44,14 @@ class _SubjectRegistrationDetailsPageState
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() => _isRegistering = false);
+      if (mounted) {
+        setState(() => _isRegistering = false);
+      }
     }
   }
 
@@ -56,7 +61,7 @@ class _SubjectRegistrationDetailsPageState
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF5B4B8A),
-        title: const Text('CO-CURRICULUM REGISTRATION'),
+        title: const Text('SUBJECT REGISTRATION'),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -135,7 +140,8 @@ class _SubjectRegistrationDetailsPageState
                 child: Image.asset(
                   'assets/images/co_curriculum.png',
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
                 ),
               ),
             ],
