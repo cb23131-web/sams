@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/database.dart';
 
+const _currentStudent = 'ahmad';
+
 class SubjectAttendanceCodePage extends StatelessWidget {
   final int subjectId;
   final String subjectName;
@@ -75,7 +77,8 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
-                                    'Subject Code',
+                                    'Subject\ncode',
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
@@ -85,7 +88,8 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
-                                    'Subject name',
+                                    'Subject\nname',
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
@@ -95,7 +99,8 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
-                                    'Credit Hours',
+                                    'Credit\nHours',
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
@@ -110,6 +115,7 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
                                     details['code'] ?? '',
+                                    textAlign: TextAlign.center,
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ),
@@ -117,38 +123,16 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
                                     details['name'] ?? '',
+                                    textAlign: TextAlign.center,
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(8),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        '${details['credits'] ?? ''}',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
-                                        ),
-                                        margin: const EdgeInsets.only(top: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'Enrolled',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    '${details['credits'] ?? ''}',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 12),
                                   ),
                                 ),
                               ],
@@ -234,7 +218,7 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                                 ),
                               ),
                               TextSpan(
-                                text: '${details['credits'] ?? ''}',
+                                text: '${details['credits'] ?? ''} hours',
                                 style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 12,
@@ -281,7 +265,7 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Enrollment Info',
+                          'Enrolment Info',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -324,80 +308,6 @@ class SubjectAttendanceCodePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Attendance Code Section
-                  FutureBuilder<AttendanceSession?>(
-                    future: AppDatabase().getLatestAttendanceSessionForSubject(
-                      subjectId,
-                    ),
-                    builder: (context, attendanceSnapshot) {
-                      final session = attendanceSnapshot.data;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Attendance Code',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (attendanceSnapshot.connectionState ==
-                              ConnectionState.waiting)
-                            const Center(child: CircularProgressIndicator())
-                          else if (session == null || session.status != 'Open')
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                'No active attendance session at the moment.',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            )
-                          else
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Date: ${session.startTime.split(' ').first}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Time: ${session.startTime.split(' ').length > 1 ? session.startTime.split(' ').sublist(1).join(' ') : session.startTime}',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Center(
-                                    child: Text(
-                                      session.code,
-                                      style: const TextStyle(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 3,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
                   // Back to List Button
                   SizedBox(
                     width: double.infinity,
@@ -437,16 +347,29 @@ class SubjectAttendanceCodePage extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>?> _getSubjectDetails() async {
-    // This would need to be implemented in your database
-    // For now, returning mock data - adjust based on your actual database schema
-    // You may need to add a method to get subject details by ID
+    final details = await AppDatabase().getRegisteredSubjectDetailsFor(
+      _currentStudent,
+      subjectId,
+    );
+
+    if (details != null) {
+      return {
+        'code': details['code'] ?? '',
+        'name': details['name'] ?? subjectName,
+        'credits': details['credits'] ?? 3,
+        'lecturer': 'Dr. Ali',
+        'enrolled_count': details['enrolled'] ?? 0,
+        'grade': details['grade'] ?? 'N/A',
+      };
+    }
+
     return {
-      'code': 'BCS101',
+      'code': '',
       'name': subjectName,
       'credits': 3,
       'lecturer': 'Dr. Ali',
-      'enrolled_count': 24,
-      'grade': 'A-',
+      'enrolled_count': 0,
+      'grade': 'N/A',
     };
   }
 }

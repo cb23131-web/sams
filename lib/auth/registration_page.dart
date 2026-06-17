@@ -107,13 +107,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
         // Wait a moment then navigate back to login
         await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
         Navigator.of(context).pop();
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Ralat: $e')));
       } finally {
-        setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -260,7 +264,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   ),
                                   const SizedBox(height: 6),
                                   DropdownButtonFormField<String>(
-                                    value: _selectedRole,
+                                    initialValue: _selectedRole,
                                     items: [
                                       DropdownMenuItem(
                                         value: 'student',

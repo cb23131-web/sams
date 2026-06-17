@@ -18,14 +18,17 @@ class _RegisteredSubjectPageState extends State<RegisteredSubjectPage> {
   @override
   void initState() {
     super.initState();
-    _loadRegisteredSubjects();
+    _registeredSubjectsFuture = _loadRegisteredSubjects();
   }
 
-  void _loadRegisteredSubjects() {
+  Future<List<Map<String, dynamic>>> _loadRegisteredSubjects() async {
+    await AppDatabase().ensureProgrammingRegistrationFor(_currentStudent);
+    return AppDatabase().getRegistrationsFor(_currentStudent);
+  }
+
+  void _refreshRegisteredSubjects() {
     setState(() {
-      _registeredSubjectsFuture = AppDatabase().getRegistrationsFor(
-        _currentStudent,
-      );
+      _registeredSubjectsFuture = _loadRegisteredSubjects();
     });
   }
 
@@ -45,13 +48,13 @@ class _RegisteredSubjectPageState extends State<RegisteredSubjectPage> {
               await Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const RegisterSubjectPage()),
               );
-              _loadRegisteredSubjects();
+              _refreshRegisteredSubjects();
             },
           ),
         ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: AppDatabase().getRegistrationsFor(_currentStudent),
+        future: _registeredSubjectsFuture,
         builder: (context, snapshot) {
           final regs = snapshot.data ?? [];
           if (snapshot.connectionState == ConnectionState.waiting) {

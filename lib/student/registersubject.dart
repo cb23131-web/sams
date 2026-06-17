@@ -23,8 +23,13 @@ class _RegisterSubjectPageState extends State<RegisterSubjectPage> {
 
   void _refreshSubjects() {
     setState(() {
-      _subjectsFuture = AppDatabase().getSubjects();
+      _subjectsFuture = _loadSubjects();
     });
+  }
+
+  Future<List<Subject>> _loadSubjects() async {
+    await AppDatabase().ensureProgrammingRegistrationFor(_currentStudent);
+    return AppDatabase().getSubjects();
   }
 
   @override

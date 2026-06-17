@@ -914,6 +914,139 @@ class AppDatabase {
     );
   }
 
+  Future<void> ensureProgrammingRegistrationFor(String student) async {
+    final database = await db;
+    await database.transaction((txn) async {
+      final subjects = await txn.query(
+        'subjects',
+        where: 'code = ?',
+        whereArgs: ['BCS101'],
+        limit: 1,
+      );
+
+      late final int subjectId;
+      final subjectValues = {
+        'code': 'BCS101',
+        'name': 'Programming',
+        'description': 'Programming language subject',
+        'schedule': 'Monday 9:00 AM',
+        'credits': 3,
+        'max_slots': 30,
+        'enrolled': 24,
+        'status': 'Open',
+      };
+
+      if (subjects.isEmpty) {
+        subjectId = await txn.insert('subjects', subjectValues);
+      } else {
+        subjectId = subjects.first['id'] as int;
+        await txn.update(
+          'subjects',
+          subjectValues,
+          where: 'id = ?',
+          whereArgs: [subjectId],
+        );
+      }
+
+      final availableSubjects = [
+        {
+          'code': 'BCS102',
+          'name': 'Database Systems',
+          'description': 'Database design and SQL subject',
+          'schedule': 'Tuesday 10:00 AM',
+          'credits': 3,
+          'max_slots': 30,
+          'enrolled': 18,
+          'status': 'Open',
+        },
+        {
+          'code': 'BCS103',
+          'name': 'Web Development',
+          'description': 'Frontend and backend web development subject',
+          'schedule': 'Wednesday 2:00 PM',
+          'credits': 3,
+          'max_slots': 30,
+          'enrolled': 21,
+          'status': 'Open',
+        },
+      ];
+
+      for (final subject in availableSubjects) {
+        final existing = await txn.query(
+          'subjects',
+          where: 'code = ?',
+          whereArgs: [subject['code']],
+          limit: 1,
+        );
+
+        if (existing.isEmpty) {
+          await txn.insert('subjects', subject);
+        }
+      }
+
+      final registrations = await txn.query(
+        'registrations',
+        where: 'student_name = ? AND subject_id = ?',
+        whereArgs: [student, subjectId],
+        limit: 1,
+      );
+
+      late final int registrationId;
+      if (registrations.isEmpty) {
+        registrationId = await txn.insert('registrations', {
+          'subject_id': subjectId,
+          'student_name': student,
+        });
+      } else {
+        registrationId = registrations.first['id'] as int;
+      }
+
+      final grades = await txn.query(
+        'grades',
+        where: 'registration_id = ?',
+        whereArgs: [registrationId],
+        limit: 1,
+      );
+
+      final gradeValues = {
+        'registration_id': registrationId,
+        'grade': 'A-',
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      if (grades.isEmpty) {
+        await txn.insert('grades', gradeValues);
+      } else {
+        await txn.update(
+          'grades',
+          gradeValues,
+          where: 'registration_id = ?',
+          whereArgs: [registrationId],
+        );
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>?> getRegisteredSubjectDetailsFor(
+    String student,
+    int subjectId,
+  ) async {
+    final database = await db;
+    final rows = await database.rawQuery(
+      '''
+      SELECT r.id AS reg_id, s.*, IFNULL(g.grade, 'N/A') AS grade
+      FROM registrations r
+      JOIN subjects s ON s.id = r.subject_id
+      LEFT JOIN grades g ON g.registration_id = r.id
+      WHERE r.student_name = ? AND s.id = ?
+      LIMIT 1
+      ''',
+      [student, subjectId],
+    );
+
+    return rows.isEmpty ? null : rows.first;
+  }
+
   Future<int> insertAttendanceSession(AttendanceSession session) async {
     final database = await db;
     return database.insert('attendance_sessions', session.toMap());
